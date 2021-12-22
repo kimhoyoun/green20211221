@@ -5,6 +5,7 @@ import static java.lang.System.out;
 import java.io.IOException;
 import java.util.Scanner;
 
+
 class Student {
 	public int no;
 	public String name;
@@ -20,7 +21,7 @@ class Student {
 
 	public Student(int no, String name, int kor, int eng, int mat) {
 		this.no = no;
-		this.name = name;
+		this.name = name; 
 		this.kor = kor;
 		this.eng = eng;
 		this.mat = mat;
@@ -57,7 +58,6 @@ class Student {
 
 public class MainCls {
 	static Scanner sc = new Scanner(System.in);
-
 	public static final int MAX = 100;
 	static Student[] sArr = new Student[MAX];
 	static int top = 0; // 스텍 자료구조처럼.
@@ -71,7 +71,6 @@ public class MainCls {
 		sArr[top++] = new Student(sequence++, "LEE", 90, 80, 80);
 		
 		// 초기화된 사람들의 등수 계산
-//		t_rank();
 		rank(sArr);
 	}
 	
@@ -87,7 +86,6 @@ public class MainCls {
 		for(int i = 0; i<top; i++) {
 			score[i] = s[i].sum;
 		}
-		
 		
 		for(int i =0; i<top; i++) {
 			int r = top;
@@ -183,15 +181,53 @@ public class MainCls {
 		}
 		return index;
 	}
+	// 번호로 학생정보 출력
+	static void numOut() {
+		for (Student std : sArr) {
+			if (std == null)
+				break;
+			out.println(std);
+		}
+	}
+	// 등수로 학생정보 출력
+	static void rankOut() {
+		// 등수 순서대로 새로 저장할 sArr_r 객체배열을 학생 수만큼의 크기로 선언 
+		Student[] sArr_r = new Student[top];
+		for(int i = 1; i<top+1; i++) {
+			for(int j = 0; j<top; j++) {
+				// 1등부터 sArr_r[] 0번 index부터 순서대로 저장
+				if(sArr[j].rank == i) {
+					sArr_r[i-1] = sArr[j];
+				}
+			}
+		}
 		
+		for(Student std : sArr_r) {
+			if(std== null)
+				break;
+			out.println(std);
+		}
+	}
 	private static void input() {
 		out.println("::::: INPUT :::::");
 		// 성명, 국어, 영어, 수학을 입력 배열에 입력 받는다.
 		// 입력 받은 국영수 점수의 총점과 평균, 평균의 학점,
 		// 입력 된 학생의 등수가 셋팅되어 진다.
-		out.print("이름 >> ");
-		String name = sc.next();
-		sc.nextLine();
+		String name = "";
+		// 이름의 중복을 허용하지 않고 중복된다면 다시 입력받도록 함.
+		while(true) {
+			out.print("이름 >> ");
+			name = sc.next();
+			if(stdIndex(name) != -1) {
+				out.printf("%s 학생 정보는 이미 있습니다.\n다시 입력해 주세요!(종료를 원하시면 \"종료\" 입력)\n",name);
+			}else if(name.equals("종료")){
+				out.println("INPUT 종료");
+				return;
+			}else {
+				break;
+			}
+		}
+		
 		int kor =getScore("국어");
 		int eng =getScore("영어");
 		int mat =getScore("수학");
@@ -204,11 +240,24 @@ public class MainCls {
 		out.println("::::: OUTPUT :::::");
 		// 배열의 목록 출력
 		// 번호, 성명, 국어, 영어, 수학, 총점, 평균, 학점, 등수, 정렬(등수 or 번호)
-		title();
-		for (Student std : sArr) {
-			if (std == null)
-				break;
-			out.println(std);
+		out.println("정렬 방식을 선택해 주세요");
+		out.print("1. 번호 2. 등수 >> ");
+		int num = getNum();
+		while(num<0||num>2) {
+			out.println("범위를 벗어났습니다!");
+			out.print("1. 번호 2. 등수 >> ");
+			num = getNum();
+		}
+		
+		switch(num) {
+		case 1: 
+			title();
+			numOut();
+			break;
+		case 2: 
+			title();
+			rankOut();
+			break;
 		}
 	}
 	private static void search() {
@@ -287,19 +336,33 @@ public class MainCls {
 			out.printf("%s 학생의 데이터가 없습니다! \n",name);
 		}
 		else {
-			sArr[index] = null;
-			if(index != top) {
-				for(int i = index+1; i<top; i++) {
-					sArr[i].no--;
-					sArr[i-1] = sArr[i];
+			// 학생정보를 삭제할지 한번 더 물어본다.
+			char yes = 'n';
+			out.printf("%s학생의 정보를 삭제하시겠습니까? (y/n) >> ",name);
+			yes = sc.next().charAt(0);
+			while(!(yes=='y'||yes=='n')) {
+				out.println("y와 n 중에 선택해 주세요! ");
+				out.printf("%s학생의 정보를 삭제하시겠습니까? (y/n) >> ",name);
+				yes = sc.next().charAt(0);
+			}
+			
+			if(yes == 'y') {
+				sArr[index] = null;
+				if(index != top) {
+					for(int i = index+1; i<top; i++) {
+						sArr[i].no--;
+						sArr[i-1] = sArr[i];
+					}
+					// 학생수 1감소
+					top--;
+					// 마지막이였던 학생이 저장되어있는 방 null 처리
+					sArr[top] = null;
 				}
-				// 학생수 1감소
-				top--;
-				// 마지막이였던 학생이 저장되어있는 방 null 처리
-				sArr[top] = null;
+				System.out.printf("%s학생의 정보가 삭제되었습니다. \n",name);
+			}else {
+				out.printf("%s학생의 정보를 삭제하지 않고 종료했습니다.\n",name);
 			}
 		}
-		System.out.printf("%s학생의 정보가 삭제되었습니다. \n",name);
 	}
 
 	private static void end() {
